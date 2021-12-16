@@ -1,0 +1,399 @@
+---
+title: "lab_08_modeling1"
+subtitle: "Analysis of Environmental Data Lab 634"
+author: "Emma Zimmerman Greenlee"
+date: 2021-11-03
+output: 
+  html_document:
+      toc: true
+      toc_float: true
+---
+# Prelab
+### Load the Data Files
+```{r}
+require(here)
+
+dat_hab = read.csv(here("data", "hab.sub.csv"))
+head(dat_hab)
+
+dat_bird = read.csv(here("data", "bird.sub.csv"))
+head(dat_bird)
+
+veg = read.csv(here("data", "vegdata.csv"))
+head(veg)
+```
+
+## Bootstrap: Continous Data
+### Bootstrap: Exploring the Alternative Hypothesis
+### Penguin Data
+```{r}
+require(palmerpenguins)
+penguin_dat = droplevels(subset(penguins, species != "Gentoo"))
+```
+
+### Parametric Two-Sample Test
+```{r}
+t.test(flipper_length_mm ~ species, data = penguin_dat, alternative = "less")
+```
+
+### Bootstrap Two-Sample Test
+```{r}
+# install.packages("boot")
+require(boot)
+# install.packages("simpleboot")
+require(simpleboot)
+
+adelie = subset(penguin_dat, species == "Adelie")
+chinstrap = subset(penguin_dat, species == "Chinstrap")
+
+boot_mean = function(x, i)
+{
+  return(mean(x[i], na.rm = TRUE))
+}
+
+pen_boot = 
+  two.boot(
+    adelie$flipper_length_mm, 
+    chinstrap$flipper_length_mm,
+    boot_mean,
+    10000)
+head(pen_boot)
+hist(pen_boot)
+```
+
+### Tree data
+```{r}
+boxplot(pine ~ treatment, dat = veg)
+```
+
+### Tree Treatments
+```{r}
+dat_tree = droplevels(subset(veg, treatment %in% c("control", "clipped")))
+control_tree = subset(dat_tree, treatment == "control")
+clipped_tree = subset(dat_tree, treatment == "clipped")
+
+table(subset(dat_tree, treatment == "clipped")$pine)
+```
+
+### Nonparametric two-sample test
+``` {r}
+wilcox.test(pine ~ treatment, data = dat_tree)
+```
+
+### Bootstrap
+```{r}
+tree_boot = 
+  two.boot(
+    subset(dat_tree, treatment == "clipped")$pine,
+    subset(dat_tree, treatment == "control")$pine,
+    FUN = mean,
+    R = 10000,
+    na.rm = TRUE
+  )
+
+# sum(tree_boot$t >= 0)
+# sum(tree_boot$t < 0)
+
+boot.ci(tree_boot)
+hist(tree_boot$t, main = "Bootstrap sampling distribution")
+quantile(tree_boot$t, 0.025)
+```
+
+## Resampling: linear regression
+### Bird Data
+```{r}
+# dat_bird = read.csv(rmd.utils::find_file("bird.sub.csv"))
+# dat_habitat = read.csv(rmd.utils::find_file("hab.sub.csv"))
+
+dat_all = merge(
+  dat_bird, 
+  dat_hab,
+  by = c("basin", "sub"))
+head(dat_all[, c("b.sidi", "s.sidi")])
+
+# Calculate the sample mean and sd:
+b_sidi_mean = mean(dat_all$b.sidi, na.rm = TRUE)
+b_sidi_sd   = sd(dat_all$b.sidi, na.rm = TRUE)
+
+# Use the subset-by-name symbol ($) to create a 
+# new column of z-standardized values.
+
+dat_all$b.sidi.standardized = (dat_all$b.sidi - b_sidi_mean)/b_sidi_sd
+
+mean(dat_all$b.sidi.standardized)
+sd(dat_all$b.sidi.standardized)
+```
+
+### Model Variables
+```{r}
+plot(
+  b.sidi ~ s.sidi, data = dat_all,
+  main = "Simpson's diversity indices",
+  xlab = "Vegetation cover diversity",
+  ylab = "Bird diversity")
+```
+
+### Simple Linear Regression
+```{r}
+fit_1 = lm(b.sidi ~ s.sidi, data = dat_all)
+coef(fit_1)
+
+slope_observed = coef(fit_1)[2]
+
+plot(
+  b.sidi ~ s.sidi, data = dat_all,
+  main = "Simpson's diversity indices",
+  xlab = "Vegetation cover diversity",
+  ylab = "Bird diversity")
+abline(fit_1)
+```
+
+### The Slope Coefficient
+```{r}
+dat_1 = 
+  subset(
+    dat_all,
+    select = c(b.sidi, s.sidi))
+
+index_1 = sample(nrow(dat_1), replace = TRUE)
+index_2 = sample(nrow(dat_1), replace = TRUE)
+
+dat_resampled_i = 
+  data.frame(
+    b.sidi = dat_1$b.sidi[index_1],
+    s.sidi = dat_1$s.sidi[index_2]
+  )
+
+fit_resampled_i = lm(b.sidi ~ s.sidi, data = dat_resampled_i)
+slope_resampled_i = coef(fit_resampled_i)[2]
+
+print(slope_resampled_i)
+
+plot(
+  b.sidi ~ s.sidi, data = dat_resampled_i,
+  main = "Simpson's diversity indices",
+  xlab = "Vegetation cover diversity",
+  ylab = "Bird diversity")
+abline(fit_resampled_i)
+```
+
+### Randomization Loop
+```{r}
+m = 10000
+result = numeric(m) 
+
+for(i in 1:m)
+{
+  index_1 = sample(nrow(dat_1), replace = TRUE)
+  index_2 = sample(nrow(dat_1), replace = TRUE)
+
+  dat_resampled_i = data.frame(
+    b.sidi = dat_1$b.sidi[index_1],
+    s.sidi = dat_1$s.sidi[index_2]
+  )
+
+  fit_resampled_i = lm(b.sidi ~ s.sidi, data = dat_resampled_i)
+  result[i] = coef(fit_resampled_i)[2]
+} 
+head(result)
+```
+
+### The Null Distribution
+```{r}
+hist(result, main = "Null Distribution of Regression Slope", xlab = "Slope Parameter")
+abline(v = slope_observed, lty = 2, col = "red", lwd = 2)
+```
+
+### Critical Slope Value
+```{r}
+quantile(result, c(.05))
+```
+
+# Lab Questions
+
+## Question 1
+### Calculate the standard deviation of the differences in mean flipper length from your bootstrap simulation. Show the R-code you used to find do the calculation.
+The sd is 1.022376
+```{r}
+adelie = subset(penguins, species == "Adelie")
+chinstrap = subset(penguins, species == "Chinstrap")
+
+boot_mean = function(x, i)
+{
+  return(mean(x[i], na.rm = TRUE))
+}
+
+pen_boot = 
+  two.boot(
+    adelie$flipper_length_mm, 
+    chinstrap$flipper_length_mm,
+    FUN = boot_mean,
+    R = 10000,
+    )
+
+sd(pen_boot$t)
+mean(pen_boot$t)
+median(pen_boot$t)
+```
+
+## Question 2
+### Include your histogram in your lab report (you don’t need to show the R-code but make sure your plot includes appropriate title, axes, etc.).
+```{r}
+hist(pen_boot, main = "Chinstrap and Adelie Mean Flipper Length", xlab = "Difference in mean flipper length")
+```
+
+## Question 3
+### What was the 95% bootstrap CI you calculated using quantile()? Show the R-code you used to answer the question.
+-7.889170 to -3.902389 
+```{r}
+quantile(pen_boot$t, c(0.025, 0.975))
+```
+
+## Question 4
+### Do you think the resampled differences in means follow a skewed distribution? Your answer should make reference to the mean, median, and histogram of the differences in means.
+I don't think that they follow a skewed distribution. The mean and median differ by very little, and the histogram shows an almost perfectly symmetrical bell shape. There isn't anything skewed about this distribution.
+
+## Question 5
+### Show the R-code you used to create pen_ecdf()
+```{r}
+pen_ecdf = ecdf(pen_boot$t)
+```
+
+## Question 6
+### What is the probability, according to the empirical distribution function, of observing a mean difference of -4.5 or greater? Show the R code you used to perform the calculation.
+The probability is 8.88%
+```{r}
+1 - pen_ecdf(-4.5)
+```
+
+## Question 7
+### What is the probability, according to the empirical distribution function, of observing a mean difference of -8 or smaller? Show the R code you used to perform the calculation.
+The probability is 1.93%
+```{r}
+pen_ecdf(-8)
+```
+
+## Question 8
+### State the null and alternative hypotheses of a two-sample, two-tailed test for the difference in mean flipper lengths between the two penguin species.
+The null hypothesis is that there is no difference in the mean flipper lengths between the two penguin species. The alternative test is that there is a (measurable) difference in the mean flipper lengths.
+
+## Question 9
+### What was the p-value? Show the R-code you used to find out.
+The p-value was 0.1005
+```{r}
+# veg = read.csv(here("data", "vegdata.csv"))
+head(veg)
+
+dat_veg = droplevels(subset(veg, treatment %in% c("control", "clipped")))
+head(dat_veg)
+
+wilcox.test(pine ~ treatment, data = dat_veg)
+```
+
+## Question 10
+### What were the endpoints of your bootstrap CI? Show the R-code you used to find out.
+4.125 to 29.875
+```{r}
+# require(simpleboot)
+set.seed(45454)
+
+tree_boot = 
+  two.boot(
+    subset(dat_tree, treatment == "clipped")$pine,
+    subset(dat_tree, treatment == "control")$pine,
+    FUN = mean,
+    R = 10000,
+    na.rm = TRUE
+  )
+
+quantile(tree_boot$t, c(0.025, 0.975))
+```
+
+## Question 11
+### What is the observed difference in mean tree counts and does it fall within the 95% bootstrap CI?
+The observed difference between the means is 16. 16 does fall within the 95% bootstrap CI (4.125 to 29.875).
+```{r}
+mean(subset(dat_veg, treatment == "clipped")$pine) -
+mean(subset(dat_veg, treatment == "control")$pine)
+```
+
+## Question 12
+### Briefly describe the Simpson diversity index, and explain what it quantifies.
+The Simpson diversity index is made up of two indices, b.sidi and s.sidi. b.sidi describes the diversity of the birds breeding at a site and s.sidi represents the diversity of the vegetation at a site (landscape diversity).
+
+## Question 13
+### Show the code you used to z-standardize the s.sidi column.
+```{r}
+# dat_bird = read.csv(rmd.utils::find_file("bird.sub.csv"))
+# dat_hab = read.csv(rmd.utils::find_file("hab.sub.csv"))
+
+dat_all = merge(
+  dat_bird, 
+  dat_hab,
+  by = c("basin", "sub"))
+head(dat_all[, c("b.sidi", "s.sidi")])
+
+b_sidi_mean = mean(dat_all$b.sidi, na.rm = TRUE)
+b_sidi_sd   = sd(dat_all$b.sidi, na.rm = TRUE)
+
+dat_all$b.sidi.standardized = (dat_all$b.sidi - b_sidi_mean)/b_sidi_sd
+
+# Z-standardization code: 
+s_sidi_mean = mean(dat_all$s.sidi, na.rm = TRUE)
+s_sidi_sd = sd(dat_all$s.sidi, na.rm = TRUE)
+
+dat_all$s.sidi.stardardized = (dat_all$s.sidi - s_sidi_mean) / s_sidi_sd
+```
+
+## Question 14
+### Show the code for your completed loop.
+```{r}
+set.seed(45454)
+fit_1 = lm(b.sidi ~ s.sidi, data = dat_all)
+coef(fit_1)
+slope_observed = coef(fit_1)[2]
+
+dat_1 = 
+  subset(
+    dat_all,
+    select = c(b.sidi, s.sidi))
+
+m = 10000
+result = numeric(m) 
+
+for(i in 1:m)
+{
+  index_1 = sample(nrow(dat_1), replace = TRUE)
+  index_2 = sample(nrow(dat_1), replace = TRUE)
+
+  dat_resampled_i = 
+    data.frame(
+      b.sidi = dat_1$b.sidi[index_1],
+      s.sidi = dat_1$s.sidi[index_2]
+    )
+
+  fit_resampled_i = lm(b.sidi ~ s.sidi, data = dat_resampled_i)
+  result[i] = coef(fit_resampled_i)[2]
+} 
+head(result)
+```
+
+## Question 15
+### In your report, include a plot of your histogram with vertical lines showing the observed slope and the critical value from the resampled MC slopes.
+```{r}
+hist(result, main = "Monte Carlo Resampling: \nSimpson's Diversity Indices for Vegetation and Birds", xlab = "Slope Parameter")
+abline(v = slope_observed, col = "blue", lwd = 2)
+abline(v = quantile(result, 0.05), col = "red", lty = "dotted", lwd = 2)
+```
+
+## Question 16
+### What was your critical value? Was the observed slope less than the critical value?
+The critical value was -0.01309684. The observed slope was -0.02437131, which is *not* less than the critical value.
+```{r}
+quantile(result, 0.05)
+print(slope_observed)
+```
+
+## Question 17
+### What is your conclusion regarding the evidence of a negative relationship between vegetation cover diversity and bird diversity? Make sure to justify your conclusions using the results of your analysis.
+It seems like there is in fact evidence of a negative relationship between vegetation cover density and bird diversity. Because the observed slope that I calculated is less than the critical value, 95% of the time the Monte Carlo sampling is repeated we'll observe a slope greater than -0.01309. If there wasn't a relationship, the slope coefficient would only be -0.01309 5% of the time.

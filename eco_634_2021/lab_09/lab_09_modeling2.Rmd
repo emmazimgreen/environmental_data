@@ -1,0 +1,291 @@
+---
+title: "lab_09_modeling2"
+subtitle: "Analysis of Environmental Data Lab 634"
+author: "Emma Zimmerman Greenlee"
+date: 2021-11-10
+output: 
+  html_document:
+      toc: true
+      toc_float: true
+---
+# Prelab
+### Load the Data Files
+```{r}
+require(here)
+catrate = read.csv(here("data", "catrate.csv"))
+head(catrate)
+```
+
+## Binomial Test for Proportions
+### Reproductive Success and Failure
+```{r}
+n_success = sum(catrate$success)
+n_years = sum(catrate$years)
+binom.test(n_success, n_years)
+```
+
+### Reproductive Catastrophe and Late Filling
+```{r}
+late_fill_rate = 2/7
+normal_fill_rate = 1 - late_fill_rate
+
+# Two-sided alternative hypothesis
+binom.test(
+  n_success,
+  n_years,
+  p = normal_fill_rate) 
+
+# One-sided alternative hypothesis
+binom.test(
+  n_success,
+  n_years,
+  p = normal_fill_rate,
+  alternative ='less')
+```
+
+## Two Sample Tests
+### F-distribution Example: Vegetation Data
+```{r}
+veg = read.csv(here("data", "vegdata.csv"))
+head(veg)
+
+boxplot(pine ~ treatment, data = veg)
+```
+
+### Variance test
+```{r}
+var.test(
+  pine ~ treatment,
+  data = veg,
+  subset = treatment %in% c('control','clipped'))
+```
+
+### F-tests Assumes Normality
+```{r}
+shapiro.test(veg$pine[veg$treatment=="control"])
+
+shapiro.test(veg$pine[veg$treatment=="clipped"])
+```
+
+### Non-parametric Variance Test
+```{r}
+fligner.test(
+  pine ~ treatment,
+  data = veg,
+  subset = treatment %in% c('control','clipped'))
+
+bartlett.test(pine ~ treatment, data = veg)
+
+fligner.test(pine ~ treatment, data = veg)
+```
+
+## Comparing two sample means
+### T-test
+```{r}
+t.test(
+  pine ~ treatment,
+  data = veg,
+  subset = treatment %in% c('control','clipped'))
+```
+
+### Wilcox test
+```{r}
+wilcox.test(
+  pine ~ treatment,
+  data = veg,
+  subset = treatment %in% c('control','clipped'))
+```
+
+## Tests for paired samples
+```{r}
+control = veg$pine[veg$treatment=='control']
+clipped = veg$pine[veg$treatment=='clipped']
+
+t.test(control, clipped, paired=TRUE)
+
+wilcox.test(control, clipped, paired=TRUE)
+```
+
+## Correlation
+### Marbled Salamander
+```{r}
+disp = read.csv(here("data", "dispersal.csv")); disp
+plot(disp$disp.rate.ftb, disp$disp.rate.eb)
+
+# Test for significance
+cor.test(
+  disp$disp.rate.ftb,
+  disp$disp.rate.eb,
+  use='complete.obs')
+
+cor.test(
+  disp$disp.rate.ftb,
+  disp$disp.rate.eb,
+  use='complete.obs',
+  method='spearman')
+```
+
+## Comparing two distributions
+```{r}
+plot(
+  ecdf(disp$disp.rate.ftb),
+  verticals=TRUE)
+plot(
+  ecdf(disp$disp.rate.eb),
+  verticals=TRUE,
+  lty=3,
+  add=TRUE)
+
+ks.test(disp$disp.rate.ftb,disp$disp.rate.eb)
+```
+
+## Comparing two or more proportions
+### Sex-linked killing
+```{r}
+# Simple binomial proportions test
+prop.test(c(4,16),c(40,250))
+```
+
+## Dependence of variables in a contingency table
+### Contingency: Chi-square test
+```{r}
+owls = matrix(c(16, 9, 4, 11), nrow=2)
+rownames(owls) = c("present", "absent")
+colnames(owls) = c("old", "young")
+chisq.test(owls)
+```
+
+### Fisher's Exact test
+```{r}
+fisher.test(owls)
+```
+
+### Bird habitat data
+```{r}
+birds = read.csv(here("data", "bird.sta.csv"))
+hab = read.csv(here("data", "hab.sta.csv"))
+birdhab = merge(birds, hab, by=c("basin", "sub", "sta"))
+
+# Create a contingency table for edge/interior and brown creeper presence/absence
+table(birdhab$s.edge, birdhab$BRCR > 0)
+
+# Set the presence to be in the first column
+br_creeper_table = table(birdhab$s.edge, birdhab$BRCR > 0)[, 2:1]
+```
+
+# Lab Questions
+
+### Chi-square Tests
+```{r}
+br_creeper_table
+chisq.test(br_creeper_table)
+```
+
+## Question 1
+### State the null hypothesis of the Chi-square test.
+The null hypothesis is that there is no correlation between the habitats (being edge or interior) and the presence (and absence) of Brown Creepers.
+
+## Question 2
+### Consider the results of your test and explain whether you think that Brown Creepers show a significant habitat preference.
+Since the p-value from the Chi-square test was quite low (1.386e-06), which means that there is strong evidence to reject the null hypothesis, I do believe that Brown Creepers show a significant habitat preference (the opposite of what the null hypothesis states).
+
+## Question 3
+### Show the R-code you can use to create a model fit (call it fit_species) of penguin body mass as predicted by penguin species.
+```{r}
+require(palmerpenguins) 
+
+fit_species = 
+  lm(
+    formula = body_mass_g ~ species,
+    data = penguins)
+```
+
+## Question 4
+### Show the R-code you can use to create a model fit (call it fit_sex) of penguin body mass as predicted by sex.
+```{r}
+fit_sex = 
+  lm(
+    formula = body_mass_g ~ sex,
+    data = penguins)
+```
+
+## Question 5
+### Show the R-code you can use to create a model fit (call it fit_both) of penguin body mass as predicted by species and sex.
+```{r}
+fit_both = 
+  lm(
+    formula = body_mass_g ~ species*sex,
+    data = penguins)
+```
+
+## Question 6
+### Include a conditional boxplot corresponding to your fit_species model.
+```{r}
+boxplot(
+  formula = body_mass_g ~ species,
+  data = penguins,
+  main = "Penguin Body Mass (g) by Species")
+```
+
+## Question 7
+### Include a conditional boxplot corresponding to your fit_sex model.
+```{r}
+boxplot(
+  formula = body_mass_g ~ sex,
+  data = penguins,
+  main = "Penguin Body Mass (g) by Sex")
+```
+
+## Question 8
+### Include a conditional boxplot corresponding to your fit_both model. Your group labels must all correspond to the correct box, be visible, and sensible.
+```{r}
+boxplot(
+  formula = body_mass_g ~ species*sex,
+  data = penguins,
+  xlab = " ",
+  main = "Penguin Body Mass (g) by Species and Sex",
+  names = c("Adelie\nfemale", "Adelie\nmale", "Gentoo\nfemale", 
+            "Gentoo\nmale", "Chinstrap\nfemale", "Chinstrap\nmale"),
+  las = 2)
+```
+
+## Question 9
+### Based on the shapes of the boxes, which of the models (if any) do you think may have problems fulfilling the homogeneity assumption?
+The male Gentoo box is wider, which means that there is more variability in the data, so I believe that the male Gentoos (and to a certain extent the female Gentoos) will have problems fulfilling the homogeneity assumption.
+
+## Question 10
+### State the null hypothesis of the Bartlett test.
+The null hypothesis is that the variance between the body mass of the penguin species and/or sex (depending on which we are testing) is completely the same.
+
+## Question 11
+### What was the p-value from the Bartlett test of homogeneity for observations grouped by species? You can round your answer to 4 decimal digits.
+The p-value was 0.0501
+```{r}
+bartlett.test(body_mass_g ~ species, data = penguins)
+```
+
+## Question 12
+### What was the p-value from the Bartlett test of homogeneity for observations grouped by sex? You can round your answer to 4 decimal digits.
+The p-value was 0.0319.
+```{r}
+bartlett.test(body_mass_g ~ sex, data = penguins)
+```
+
+## Question 13
+### What was the p-value from the Bartlett test of homogeneity for observations grouped by both factors? You can round your answer to 4 decimal digits.
+The p-value was 0.1741.
+```{r}
+dat_groups = aggregate(
+  body_mass_g ~ species * sex,
+  data = penguins,
+  FUN = c)
+
+bartlett.test(dat_groups$body_mass_g)
+```
+
+## Question 14
+### Based on the results of the Bartlett tests, do you anticipate any issues with heterogeneity in any of the models? Make sure you justify your response with the results of your tests.
+The body mass by species test and the body mass by species and sex test both had high p-values, which means that the data variance between the groups is similar (accepting the null hypothesis) and not heterogeneous. Because of this, I do expect that there will be issues with heterogenity in these two models.
+
+
+

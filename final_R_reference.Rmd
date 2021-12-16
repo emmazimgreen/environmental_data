@@ -1,0 +1,356 @@
+
+---
+title: "Final Project: R Reference Guide"
+author: "Emma Zimmerman Greenlee"
+date: "12/15/2021"
+output: html_document
+---
+
+# R Reference Guide {.tabset .tabset-pills}
+
+
+## Loading Data and Packages
+
+### library() and require()
+We can use the library() function to load a package to our R environment that we already installed. We'll use it to load the here package: 
+```{r}
+library(here)
+```
+
+The require() function also works to load packages. We'll use it to load the palmerpenguins package.
+```{r}
+require(palmerpenguins)
+```
+
+### read.csv() and here()
+We can use here() to tell R where to find our file within a specified directory.
+read.csv() is used when the file we need to load is a .csv. 
+We'll both read.csv() and here() it to find the 2021 ginkgo.csv data file in our files, and data.frame() to load it as a data frame.
+```{r}
+# Find the file within our directory and load it into our environment
+ginkgo = data.frame(read.csv(here("data", "ginkgo.csv")))
+```
+
+## Data Structures
+
+### c()
+The function c() combines or concatenates its arguments into a vector (a 1-dimensional data structure consisting of 1 or more elements).
+
+* All of the elements must be of the same type.
+* We can’t combine character and numeric types in the same call to c()
+Here’s two examples using numeric and character data types:
+```{r}
+## Create a vector of numbers:
+num_vec  = c(1, 4, 8, 9, 13)
+
+## Create a vector of characters:
+char_vec = c("a", "fish", "data is cool")
+```
+
+We can show the contents of a vector by typing the name of the vector, or using the print() function.
+```{r}
+## Typing the name of the vector into the console prints the contents
+num_vec
+```
+```{r}
+## The print() function accomplishes the same task:
+print(char_vec)
+```
+
+### length()
+We can check the number of elements in a vector using the length() function. The elements of the vector don't need to all be the same type to use this function!
+```{r}
+length(char_vec)
+length(num_vec)
+```
+
+### matrix()
+A matrix is a 2-dimensional data structure with elements of the same type arranged into a set number of rows and columns. 
+
+We can create a matrix using the matrix() function. These are the arguments needed:
+* data = the data we are using to fill the matrix. For this one, we'll use the vector num_vec.
+* byrow = determines if the matrix is being filled with the data vertically or horizontally. TRUE is horizontal, and FALSE (the default) is vertical.
+* nrow = the number of rows we want our matrix to have.
+* ncol = the number of columns we want our matrix to have.
+```{r}
+# Let's give our matrix 6 rows and 5 columns:
+matrix(data = num_vec, byrow = TRUE, nrow = 6, ncol = 5)
+```
+
+### data.frame()
+A data frame is another 2D way of storing data, with variables as the columns and observations as the rows. This means that you can compile  different vectors of different element types together.
+
+The elements of the data frame all need to be vectors, and those vectors need to all have the same length
+
+Let's make a data frame from two new vectors:
+```{r}
+color_names = c("blue", "red", "green")
+color_letters = c(4, 3, 5)
+
+data.frame(color_names, color_letters)
+```
+
+We can also look at the ginkgo data frame from earlier. Typing the name of the data frame shows us the whole thing, like we saw earlier, but head() shows us a preview of the first 6 lines. Let's do that instead:
+```{r}
+head(ginkgo)
+```
+
+### nrow() and ncol()
+There are lots of functions we can use with data frames. nrow() and ncol() are two of them. Similar to length(), nrow() lets us know how many rows are in our data frame:
+```{r}
+nrow(ginkgo)
+```
+ncol() does the same for columns.
+```{r}
+ncol(ginkgo)
+```
+
+### dim()
+Another function, dim() lets us know what the dimensions are of our data frame (it works with matrices too!).
+```{r}
+dim(ginkgo)
+```
+
+## Subsetting
+
+Subsetting lets us take just the parts that we need from a big data set. Subsetting works with lists, vectors, matrices, data frames, or any other kind of data grouping, but we'll use the ginkgo data frame right now. 
+There are a few different ways to subset:
+
+### $
+$ allows us to subset information from the data frame using the name of the information we want. This works best with named rows and columns. Let's subset the petiole_length column from the ginkgo data:
+```{r}
+ginkgo$petiole_length
+```
+
+### [ ]
+Using [ ], we can select elements by their position within the data frame.
+
+With [ ] there are two positions:
+* The first position, [x, ], calls the row position of the data frame.
+* The second position, [ , y], calls the column position of the data frame.
+```{r}
+# Let's select the first row of the ginkgo data:
+ginkgo[1,]
+
+# Now let's select the third column of the ginkgo data:
+ginkgo[,3]
+
+# Finally, let's select the element in row 2, column 3 of the ginkgo data:
+ginkgo[2, 3]
+```
+
+### subset()
+The subset() function works similarly to the $ function, in that it allows us to call data by name. However, subset() pulls out all the data associated with the name you specify. 
+This makes more sense when you look at the arguments:
+* x = the data we're subsetting from.
+* subset = an expression indicating elements or rows to keep.
+* select = an expression indicating columns to select from a data frame.
+
+
+We'll use the palmerpenguins dataset to illustrate this: 
+```{r}
+# We want all the data for Adelie penguins
+subset(penguins, species == "Adelie")
+```
+
+## Numerical Data Exploration
+
+### summary()
+When working with numerical data, a basic summary of the data can be very helpful to see what you're working with. The summary() function tells us the minimum, maximum, mean, median, and quantiles of our data.
+
+Let's check out the summary for our ginkgo data:
+```{r}
+summary(ginkgo)
+```
+
+### mean()
+mean() tells us the mean of our data. We can't ask for the mean of the entire ginkgo data set though, so we have to ask for the individual columns.
+```{r}
+# If our data has any NA values, we need to put "na.rm = TRUE" in the function
+mean(ginkgo$petiole_length, na.rm = TRUE)
+```
+
+### sd()
+Similarly to the mean() function, the sd() function calculates the standard deviation of our data.
+```{r}
+sd(ginkgo$max_width, na.rm = TRUE)
+```
+
+## Graphical Data Exploration
+
+### plot()
+We can create a scatterplot from our data using the plot() function. There are *lots* of different arguments we can use to customize our scatterplot!
+
+Here are a few of those arguments:
+* x and y is the data we are plotting.
+* "col" changes the color of the plot points. I'm partial to the "deeppink2" color!
+* "pch" changes the symbols used for the points. In honor of the holiday season and Hanukkah, let's use symbol "11".
+* "cex" changes the scale/size of the points. 
+* "main" lets us title the whole plot with a name of our choosing.
+* "xlab" lets us label the x-axis with a name of our choosing.
+* "ylab" lets us label the y-axis with a name of our choosing.
+* "xlim" allows us to change the limits of the x-axis.
+* "ylim" allows us to change the limits of the y-axis.
+
+Let's make a scatter plot of max leaf depth and max leaf width from the ginkgo data:
+```{r}
+plot(x = ginkgo$max_depth,
+     y = ginkgo$max_width,
+     main = "Scatterplot of Ginkgo Leaf Depth vs Leaf Width",
+     xlab = "max leaf depth (mm)",
+     ylab = "max leaf width (mm)",
+     col = "deeppink2",
+     pch = 11,
+     cex = 0.5,
+     xlim = c(20, 75),
+     ylim = c(25, 105)
+)
+```
+
+### hist()
+The hist() function allows us to create a histogram (frequency distribution plot) with the data of our choosing.
+
+* The breaks argument lets us choose the break points of the bins in the x-axis, changing the number of bars in the plot. We could either specify where we want the break points to be along the x-axis in the form of a vector, or specify how many breaks we want there to be.
+
+We'll use the flipper length data from the penguin data set to make our histogram:
+```{r}
+# 5 breaks seems appropriate for this plot
+hist(penguins$flipper_length_mm,
+     breaks = 5,
+     main = "Histogram of Penguin Flipper Length (mm)",
+     xlab = "flipper length (mm)",
+     col = "deeppink2"
+     )
+```
+
+### boxplot()
+The boxplot() function lets us create a box-and-whisker plot from our data. For this, we'll use the ginkgo data again.
+
+Regular box plots are made with only one response variable (in this case, petiole length) and show us a graphical representation of the spread of our data. 
+
+Here is our box plot:
+```{r}
+boxplot(ginkgo$petiole_length,
+        main = "Boxplot of Ginkgo Leaf Petiole Length",
+        ylab = "petiole length (mm)"
+        )
+```
+
+Conditional box plots are made with a response variable that is based on a categorical variable (all data of our choosing). 
+
+Let's look at the petiole length based on which site the leaves were found at:
+```{r}
+boxplot(ginkgo$petiole_length ~ ginkgo$site_id,
+        main = "Boxplot of Ginkgo Leaf Petiole Length by Site",
+        xlab = "site id number",
+        ylab = "petiole length (mm)"
+        )
+```
+
+### par()
+The par() function lets us put multiple plots in the same image. Let's use histograms from the penguin to demonstrate this. 
+
+* We can use the "mfrow" argument to determine how the plots are arranged! "mfrow" looks like this: c(number of rows, number of columns).
+
+Let's make 4 plots, and arrange them in a 2 by 2 grid:
+```{r}
+par(mfrow = c(2, 2))
+
+# Now we'll make the plots and color them differently to tell them apart:
+hist(penguins$flipper_length_mm,
+     main = "Histogram of Penguin Flipper Length (mm)",
+     xlab = "flipper length (mm)",
+     col = "deeppink2"
+     )
+hist(penguins$bill_length_mm,
+     main = "Histogram of Penguin Bill Length (mm)",
+     xlab = "bill length (mm)",
+     col = "darkgoldenrod1"
+     )
+hist(penguins$body_mass_g,
+     main = "Histogram of Penguin Body Mass (g)",
+     xlab = "body mass (g)",
+     col = "deepskyblue4"
+     )
+hist(penguins$bill_depth_mm,
+     main = "Histogram of Penguin Bill Depth (mm)",
+     xlab = "bill depth (mm)",
+     col = "darkorange1"
+     )
+```
+
+## Distribution Functions
+
+We deal with two kinds distribution most often: normal and binomial.  
+
+* Normally-distributed data is bell-shaped when graphed, and is based off of continuous data. We use the terms cumulative density and probability density with it. Any function that ends in -norm() is used with normal distributions.
+
+* Binomial distributions happen when a test or trial has two outcomes, both of which are mutually exclusive. They are based on discrete data sets, and we use the terms cumulative mass and probability mass. Any function that ends in -binom() is used with binomial distributions.
+
+### dnorm()
+The dnorm() function tells us the density of our normally distributed data in the form of a probability. 
+
+* x is the value we want to find the probability density of
+* mean is the mean of the data.
+* sd is the standard deviation of the data.
+
+Let's find the probability that a raccoon weighs 15.2 pounds, when the mean raccoon weight is 13.8 pounds and the sd is 8.1 (I made this data up based on Google searches!)
+```{r}
+dnorm(x = 15.2, mean = 13.8, sd = 8.1)
+```
+We get 0.048 as an output, which means that the probability of a raccoon weighing 15.2 pounds based on the data we gave is just about 5 percent!
+
+### pnorm()
+The pnorm() function finds the cumulative probability density of our normally distributed data. This means that pnorm() finds the probability of a raccoon weighing 15.2 pounds or *less*, instead of just the likelihood that it weights 15.2 pounds.
+
+* q is the value we want to find the probability density for.
+* mean and sd are the same as they were with dnorm().
+* lower.tail changes the side of the normal distribution we're looking at. If we want to find the probability that a raccoon weighs 15.2 lbs or less, we don't need to use lower.tail. But if we want to find the probability that a raccoon weighs 15.2 lbs or *more*, lower.tail needs to be equal to FALSE.
+```{r}
+# Let's find the probability that a raccoon weighs 15.2 pounds or less, so we'll set lower.tail equal to TRUE We'll use the same values for mean and sd as before.
+pnorm(q = 15.2, mean = 13.8, sd = 8.1, lower.tail = TRUE)
+```
+The output of the pnorm() function was 0.57, so that means that the chance a raccoon weighs 15.2 pounds or less is about 57%!
+
+### qnorm()
+qnorm() is a little bit different from the other normal distribution functions we've gone through so far. While pnorm() returns a probability when we give it a value, qnorm() does the opposite, and returns a value when we give it a probability.
+
+* We already know what mean and sd are.
+* p is a probability. We give the function a probability and ask it given a probability of p, what number is p likely to appear?
+```{r}
+# Let's use the raccoon example again and use the pnorm() output as our p value:
+qnorm(p = 0.57, mean = 13.8, sd = 8.1)
+```
+This output tells us that when the probability is 57%, the value that will cause that probability is 15.2. We know this is true because these values are the inverse of what the pnorm() function told us!
+
+### dbinom()
+dbinom() is similar to dnorm() in that it gives us the probability of observing an exact value, but the arguments are slightly different. 
+
+* x is the value we want to find the probability of.
+* size is the number of tests/trials run.
+* prob is the probability of success for each trial.
+
+Let's come up with some random numbers to try out the function:
+```{r}
+# What is the probability that we observe a value of exactly 20 when we run 40 trials and the probability of success of each trial is 0.3?
+dbinom(x = 20, size = 40, prob = 0.3)
+```
+The probability of observing a value of exactly 20 is right around 4%!
+
+### pbinom()
+Again, pbinom() is almost the same as dbinom(), in that it tells us the probability of observing a value of our choosing or smaller.
+
+* q is the value we want to find the probability of.
+* size and prob are the same as they are in dbinom().
+```{r}
+# What is the probability that we observe a value of 20 or smaller when we run 40 trials and the probability of success of each trial is 0.3?
+pbinom(q = 20, size = 40, prob = 0.3)
+```
+Wow, it looks like the probability of observing a value of 20 or less is almost 100%! Makes sense.
+
+### qbinom()
+qbinom() is similar to qnorm() in that it does the reverse of pbinom()! We give the function a probability and it tells us the number that would give us that probability.
+```{r}
+qbinom(p = 0.997, size = 40, prob = 0.3)
+```
+Yep, we're likely to observe value of 20 or smaller 99.7% of the time!

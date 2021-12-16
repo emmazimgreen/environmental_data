@@ -1,0 +1,128 @@
+---
+title: "in_class_asmt_w3"
+output: html_document
+---
+> install.packages("palmerpenguins")
+trying URL 'https://cran.rstudio.com/bin/macosx/contrib/4.1/palmerpenguins_0.1.0.tgz'
+Content type 'application/x-gzip' length 3001757 bytes (2.9 MB)
+==================================================
+downloaded 2.9 MB
+
+
+The downloaded binary packages are in
+	/var/folders/vg/2v_21pms6m92phkmqsc0_s8h0000gn/T//RtmpjkirPP/downloaded_packages
+> install.packages("here")
+also installing the dependency ‘rprojroot’
+
+trying URL 'https://cran.rstudio.com/bin/macosx/contrib/4.1/rprojroot_2.0.2.tgz'
+Content type 'application/x-gzip' length 96326 bytes (94 KB)
+==================================================
+downloaded 94 KB
+
+trying URL 'https://cran.rstudio.com/bin/macosx/contrib/4.1/here_1.0.1.tgz'
+Content type 'application/x-gzip' length 51832 bytes (50 KB)
+==================================================
+downloaded 50 KB
+
+
+The downloaded binary packages are in
+	/var/folders/vg/2v_21pms6m92phkmqsc0_s8h0000gn/T//RtmpjkirPP/downloaded_packages
+> require(palmerpenguins)
+Loading required package: palmerpenguins
+> require(here)
+Loading required package: here
+here() starts at /Users/emmagreenlee/Documents/environmental_data/eco_634_2021/lab_01
+> class(palmerpenguins)
+Error: object 'palmerpenguins' not found
+> class(penguins)
+[1] "data.frame"
+> penguins = data.frame(penguins)
+> mean(penguins$body_mass_g)
+[1] NA
+> head(penguins)
+  species    island bill_length_mm bill_depth_mm
+1  Adelie Torgersen           39.1          18.7
+2  Adelie Torgersen           39.5          17.4
+3  Adelie Torgersen           40.3          18.0
+4  Adelie Torgersen             NA            NA
+5  Adelie Torgersen           36.7          19.3
+6  Adelie Torgersen           39.3          20.6
+  flipper_length_mm body_mass_g    sex year
+1               181        3750   male 2007
+2               186        3800 female 2007
+3               195        3250 female 2007
+4                NA          NA   <NA> 2007
+5               193        3450 female 2007
+6               190        3650   male 2007
+> ?mean()
+> mean(penguins, na.rm = TRUE)
+[1] NA
+Warning message:
+In mean.default(penguins, na.rm = TRUE) :
+  argument is not numeric or logical: returning NA
+> mean(penguins, trim = 0, na.rm = TRUE)
+[1] NA
+Warning message:
+In mean.default(penguins, trim = 0, na.rm = TRUE) :
+  argument is not numeric or logical: returning NA
+> mean(penguins, na.rm = TRUE)
+[1] NA
+Warning message:
+In mean.default(penguins, na.rm = TRUE) :
+  argument is not numeric or logical: returning NA
+> mean(penguins$body_mass_g)
+[1] NA
+> mean(penguins$body_mass_g, na.rm = TRUE)
+[1] 4201.754
+> summary(penguins)
+      species          island    bill_length_mm 
+ Adelie   :152   Biscoe   :168   Min.   :32.10  
+ Chinstrap: 68   Dream    :124   1st Qu.:39.23  
+ Gentoo   :124   Torgersen: 52   Median :44.45  
+                                 Mean   :43.92  
+                                 3rd Qu.:48.50  
+                                 Max.   :59.60  
+                                 NA's   :2      
+ bill_depth_mm   flipper_length_mm
+ Min.   :13.10   Min.   :172.0    
+ 1st Qu.:15.60   1st Qu.:190.0    
+ Median :17.30   Median :197.0    
+ Mean   :17.15   Mean   :200.9    
+ 3rd Qu.:18.70   3rd Qu.:213.0    
+ Max.   :21.50   Max.   :231.0    
+ NA's   :2       NA's   :2        
+  body_mass_g       sex           year     
+ Min.   :2700   female:165   Min.   :2007  
+ 1st Qu.:3550   male  :168   1st Qu.:2007  
+ Median :4050   NA's  : 11   Median :2008  
+ Mean   :4202                Mean   :2008  
+ 3rd Qu.:4750                3rd Qu.:2009  
+ Max.   :6300                Max.   :2009  
+ NA's   :2                                 
+> boxplot(penguins$bill_depth_mm)
+> boxplot(bill_depth_mm ~ sex, data = penguins)
+> par(mfrow = c(1, 2))
+> boxplot(penguins$bill_depth_mm)
+> boxplot(bill_depth_mm ~ sex, data = penguins)
+> coplot(body_mass_g ~ bill_depth_mm | sex, data = penguins)
+
+ Missing rows: 4, 9, 10, 11, 12, 48, 179, 219, 257, 269, 272 
+> coplot(body_mass_g ~ bill_depth_mm | island, data = penguins)
+
+ Missing rows: 4, 272 
+ > coplot(body_mass_g ~ bill_depth_mm | 42, data = penguins)
+Error in bad.lengths() : incompatible variable lengths
+> 
+> boxplot(bill_depth_mm ~ sex, data = penguins)
+> boxplot(bill_depth_mm ~ island, data = penguins)
+> plot(x = island, y = sex)
+Error in plot(x = island, y = sex) : object 'island' not found
+> hist(body_mass_g ~ bill_depth_mm | sex, data = penguins)
+Error in hist.default(body_mass_g ~ bill_depth_mm | sex, data = penguins) : 
+  'x' must be numeric
+> hist(penguins)
+Error in hist.default(penguins) : 'x' must be numeric
+> hist(penguins$species)
+Error in hist.default(penguins$species) : 'x' must be numeric
+> ?hist
+> hist(penguins$bill_length_mm)

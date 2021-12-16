@@ -1,0 +1,29 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+## R Markdown
+
+```{r}
+# install.packages("here")
+require("here")
+
+dat_catrate = read.csv(here("data", "catrate.csv"))
+
+head(dat_catrate)
+
+dat_delomys = read.csv(here("data", "delomys.csv")) 
+
+head(delomys)
+
+dat_rope = read.csv(here("data", "rope.csv"))
+
+head(rope)
+
+png(filename = here("emma_histogram.png"), width = 800, height = 600)
+
+hist(rope$p.cut, main = "Emma's Rope p.cut Histogram")
+
+dev.off()
+```

@@ -1,0 +1,182 @@
+---
+title: "lab_10_anova"
+subtitle: "Analysis of Environmental Data Lab 634"
+author: "Emma Zimmerman Greenlee"
+date: 2021-11-17
+output: 
+  html_document:
+      toc: true
+      toc_float: true
+---
+# Prelab
+### Code Template
+```{r}
+require(here)
+head(rope)
+
+rm(list = ls())
+
+rope = read.csv(here("data", "rope.csv"))
+rope$rope.type = factor(rope$rope.type)
+levels(rope$rope.type)
+
+# Number of Observations and Groups
+n_obs = nrow(rope)
+n_groups = length(levels(rope$rope.type))
+
+# Total Sum of Squares
+ss_tot = sum((rope$p.cut - mean(rope$p.cut))^2)
+df_tot = n_obs - 1
+
+# Sum of Squares Within Group
+agg_sq_resids = aggregate(
+  x = rope$p.cut,
+  by = list(rope$rope.type),
+  FUN = function(x) sum((x - mean(x))^2))
+str(agg_sq_resids)
+
+ss_within = sum(agg_sq_resids$x)
+df_within = n_obs - n_groups
+
+# Sum of Squares Among Group
+ss_among = ss_tot - ss_within
+df_among = n_groups - 1
+
+# Mean Squares
+ms_among = ss_among / (df_among)
+ms_within = ss_within / (df_within)
+
+# The Test Statistic: F
+f_ratio = ms_among / ms_within
+f_pval = 1 - pf(f_ratio, df_among, df_within)
+
+# ANOVA in R
+fit_1 = lm(p.cut ~ rope.type, data=rope)
+anova(fit_1)
+
+anova_fit_1 = anova(fit_1)
+str(anova_fit_1)
+
+anova_fit_1$"Sum Sq"
+```
+
+# Lab Questions
+
+## Question 1:
+### ANOVA by hand
+### Submit the code you used to build your ANOVA by hand. Make sure you use the code template so that you use the same variable names as those which I’ll use for the grading.
+```{r}
+# require(here)
+
+rm(list = ls())
+
+rope = read.csv(here("data", "rope.csv"))
+rope$rope.type = factor(rope$rope.type)
+levels(rope$rope.type)
+
+# Number of Observations and Groups
+n_obs = nrow(rope)
+n_groups = length(levels(rope$rope.type))
+
+# Total Sum of Squares
+ss_tot = sum((rope$p.cut - mean(rope$p.cut))^2)
+df_tot = n_obs - 1
+
+# Sum of Squares Within Group
+agg_sq_resids = aggregate(
+  x = rope$p.cut,
+  by = list(rope$rope.type),
+  FUN = function(x) sum((x - mean(x))^2))
+str(agg_sq_resids)
+
+ss_within = sum(agg_sq_resids$x)
+df_within = n_obs - n_groups
+
+# Sum of Squares Among Group
+ss_among = ss_tot - ss_within
+df_among = n_groups - 1
+
+# Mean Squares
+ms_among = ss_among / (df_among)
+ms_within = ss_within / (df_within)
+
+# The Test Statistic: F
+f_ratio = ms_among / ms_within
+f_pval = 1 - pf(f_ratio, df_among, df_within)
+
+# ANOVA in R
+fit_1 = lm(p.cut ~ rope.type, data=rope)
+anova(fit_1)
+
+anova_fit_1 = anova(fit_1)
+str(anova_fit_1)
+
+anova_fit_1$"Sum Sq"
+```
+
+### Self-check
+### The comparison statements (lines with ==) will return values of TRUE if your calculations are correct.
+```{r}
+# number comparison tolerance
+digits_check = 5
+
+# Build the reference model using R functions
+fit_1 = lm(p.cut ~ rope.type, data=rope)
+anova(fit_1)
+anova_fit_1 = anova(fit_1)
+
+# Check degrees of freedom
+anova_fit_1$Df == c(df_among, df_within)
+
+# Check sums of squares
+round(anova_fit_1$`Sum Sq`, digits = digits_check) == round(c(ss_among, ss_within), digits = digits_check)
+
+# Check mean squares
+round(anova_fit_1$`Mean Sq`, digits = digits_check) == round(c(ms_among, ms_within), digits = digits_check)
+
+# Check the F-ratio
+round(anova_fit_1$`F value`[1], digits = digits_check) == round(f_ratio, digits = digits_check)
+
+# Check the F test statistic p-value
+round(anova_fit_1$`Pr(>F)`[1], digits = digits_check) == round(f_pval, digits = digits_check)
+
+```
+
+## Question 2:
+### Examine the conditional boxplot in the Partitioning Variance: Within-Group section of the walkthrough. Based on the figure, do you think there are equal variances among the groups?
+Based only on the figure, I would say that overall the variances among the groups are not equal. The PI group has a significantly smaller spread than the BLAZE group. The ranges of the other four groups are relatively similar, but again, overall, I believe that the variances of all the groups are not equal.
+
+## Question 3:
+### Conduct a Bartlett test to assess the homogeneity of variances in the rope type groups. Report the p-value.
+The p-value is 0.00143.
+```{r}
+bartlett.test(p.cut ~ rope.type, data = rope)
+```
+
+## Question 4:
+### Given your graphical assessment (question 2) and the Bartlett test, do you think an ANOVA-type analysis is appropriate on the raw data? Explain why or why not.
+*************
+
+## Question 5:
+### Which rope type is the base case?
+The BLAZE rope type is the base case.
+```{r}
+fit_rope_1 = lm(p.cut ~ rope.type, data = rope)
+summary(fit_rope_1)
+```
+
+## Question 6:
+### What is the mean percent cut of the base case rope? Show your calculation using value(s) from the model coefficient table.
+The mean p.cut of the base case rope is 0.36714.
+```{r}
+blaze = subset(rope, rope.type == "BLAZE")
+mean(blaze$p.cut)
+```
+
+## Question 7:
+### What is the mean percent cut rope type XTC? Show your calculation using value(s) from the model coefficient table.
+The mean p.cut of the XTC rope type is 0.2655.
+```{r}
+xtc = subset(rope, rope.type == "XTC")
+mean(xtc$p.cut)
+```

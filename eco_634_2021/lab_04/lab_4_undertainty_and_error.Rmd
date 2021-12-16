@@ -1,0 +1,158 @@
+---
+title: "lab_4_uncertainty_and_error"
+subtitle: "Analysis of Environmental Data Lab 634"
+author: "Emma Zimmerman Greenlee"
+date: 2021-10-04
+output: 
+  html_document:
+      toc: true
+      toc_float: true
+---
+# Question 1
+```{r}
+my_mean = 10.4
+my_sd = 2.4
+
+norm_17 = rnorm(n = 17, mean = my_mean, sd = my_sd)
+norm_30 = rnorm(n = 30, mean = my_mean, sd = my_sd)
+norm_300 = rnorm(n = 300, mean = my_mean, sd = my_sd)
+norm_3000 = rnorm(n = 3000, mean = my_mean, sd = my_sd)
+```
+
+# Question 2
+```{r}
+par(mfrow = c(2, 2))
+
+hist(norm_17, main = "Histogram with 17 Data Points")
+hist(norm_30, main = "Histogram with 30 Data Points")
+hist(norm_300, main = "Histogram with 300 Data Points")
+hist(norm_3000, main = "Histogram with 3000 Data Points")
+```
+
+# Question 3
+```{r}
+require(here)
+
+png(
+  filename = here("lab_04_hist_01.png"),
+  width = 1500, height = 1600, 
+  res = 180, units = "px")
+
+par(mfrow = c(2, 2))
+
+hist(norm_17, main = "Histogram with 17 Data Points")
+hist(norm_30, main = "Histogram with 30 Data Points")
+hist(norm_300, main = "Histogram with 300 Data Points")
+hist(norm_3000, main = "Histogram with 3000 Data Points")
+
+dev.off()
+```
+
+# Question 4
+As the number of data points within histograms increase, so do the number of columns (obviously), and the y-scale also increases. The first histogram with 17 points has a gap in it's data, which the others do not. As more and more data points get added, they look more and more bell shaped, and the final histogram with 3000 points looks very much like a bell curve.
+
+# Question 5
+The shapes of the histograms are different becuase they have different amounts of data. More specifically, as more data gets added to the histograms, they shift to accommodate and show the increase in data.
+
+# Question 6
+The parameters of the standard Normal distribution are the mean and the standard deviation. The mean is equal to 0 and the standard deviation is equal to 1.
+
+# Question 7 and 8
+```{r}
+pdf(
+  file = here("norm_1.pdf"),
+  width = 7, height = 10, bg = rgb(0.9, 1, 1))
+
+x = seq(-50, 50, length.out = 1000)
+y = dnorm(x, mean = 10.4, sd = 2.4)
+
+plot(x, y, main = "Normal PDF with mean = 10.4 and sd = 2.4", type = "l", xlim = c(2, 19))
+abline(h = 0)
+
+dev.off()
+```
+
+# Question 9
+```{r}
+set.seed(374)
+
+n_pts = 37
+x_min = 1
+x_max = 20
+x = runif(n = n_pts, min = x_min, max = x_max)
+
+dat = data.frame(x = x, y_observed = rnorm(n_pts))
+
+plot(y_observed ~ x, data = dat, pch = 6, col ="deeppink", main = "Plot 1: Scatterplot")
+```
+
+# Question 10
+Submitted to Moodle.
+
+# Question 11
+```{r}
+line_point_slope = function(x, x1, y1, slope)
+{
+  get_y_intercept = 
+    function(x1, y1, slope) 
+      return(-(x1 * slope) + y1)
+  
+  linear = 
+    function(x, yint, slope) 
+      return(yint + x * slope)
+  
+  return(linear(x, get_y_intercept(x1, y1, slope), slope))
+}
+
+guess_x = 11
+guess_y = 0.2
+guess_slope = -0.01
+
+boxplot(y_observed ~ x, data = dat, pch = 4, col ="goldenrod", main = "Plot 4: Boxplot")
+curve(line_point_slope(x, guess_x, guess_y, guess_slope), add = T)
+```
+
+# Question 12
+Submitted to Moodle.
+
+# Question 13
+```{r}
+line_point_slope = function(x, x1, y1, slope)
+{
+  get_y_intercept = 
+    function(x1, y1, slope) 
+      return(-(x1 * slope) + y1)
+  
+  linear = 
+    function(x, yint, slope) 
+      return(yint + x * slope)
+  
+  return(linear(x, get_y_intercept(x1, y1, slope), slope))
+}
+
+guess_x = 11
+guess_y = 0.2
+guess_slope = -0.01
+
+y_predicted = line_point_slope(dat$x, guess_x, guess_y, guess_slope)
+
+set.seed(374)
+y_observed = rnorm(n_pts)
+
+dat = data.frame(x = x, y_observed = rnorm(n_pts), y_predicted)
+
+resids = (y_observed - y_predicted)
+
+dat = data.frame(x = x, y_observed = rnorm(n_pts), y_predicted, resids)
+
+sum(resids)
+
+print(dat)
+```
+
+# Question 14
+```{r}
+hist(dat$resids, main = "Residuals Histogram", xlab = "Residuals")
+
+plot(x = dat$y_predicted, y = dat$resids, main = "Predicted and Residuals Scatterplot", xlab = "Predicted values", ylab = "Residuals")
+```

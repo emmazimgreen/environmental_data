@@ -1,0 +1,78 @@
+---
+title: "Lab 02: R Fundamentals 2"
+subtitle: "Analysis of Environmental Data Lab 634"
+author: "Emma Zimmerman Greenlee"
+date: 2021-09-16
+output: 
+  html_document:
+      toc: true
+      toc_float: true
+---
+
+# Question 1
+
+vec_2 = c(vec_1 ==3)
+
+# Question 2
+
+  The first reason that determining which elements in vec_1 have a value of 3 by visual inspection is bad is because there are so many values that counting them manually is incredibly inefficient, especially when we can easily write code to figure it out. 
+  The second reason is that they are all 3. Its easier to find out how many elements there are (through code!) instead of counting them by hand. 
+
+# Question 3
+
+I didn't get the same count of 3 entries every time because the sample() function randomizes the output of vec_1, so the numbers in the output will be different every time.
+
+# Question 4
+
+**STILL NEED TO DO THIS**
+
+# Question 5
+
+**STILL NEED TO DO THIS**
+
+# Question 6
+
+> for (i in 1:10)
++ {
++   print(paste0("This is loop iteration: ", i))
++ }
+
+# Question 7
+
+> n = sample(17, 1, replace = TRUE)
+> for (i in 1:n)
++ {
++   print(i)
++ }
+
+# Question 8
+
+> n = 17
+> vec_1 = sample(10, n, replace = TRUE)
+
+> for (i in 1:n)
++ {
++     print(paste0("The element of vec_1 at index: ", i, " is ", vec_1[i]))
++ }
+
+# Question 9
+
+**STILL NEED TO DO THIS**
+
+
+
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

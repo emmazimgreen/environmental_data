@@ -1,0 +1,294 @@
+---
+title: "lab_06_introduction_to_inference"
+subtitle: "Analysis of Environmental Data Lab 634"
+author: "Emma Zimmerman Greenlee"
+date: 2021-10-13
+output: 
+  html_document:
+      toc: true
+      toc_float: true
+---
+# Prelab
+# Formula for the standard error of the mean
+```{r}
+require(palmerpenguins)
+
+#x = penguins$bill_depth_mm
+#is.na(x)
+#sum(is.na(x))
+
+#length(x) - sum(is.na(x))
+
+#sqrt(length(x) - sum(is.na(x)))
+#sd(x, na.rm = TRUE) / sqrt(length(x) - sum(is.na(x)))
+
+sse_mean = function(x)
+  {
+    sd(x, na.rm = TRUE) / sqrt(length(x) - sum(is.na(x)))
+  }
+
+sse_mean(penguins$bill_depth_mm)
+```
+
+# The penguin data
+```{r}
+boxplot(flipper_length_mm ~ species, data = penguins)
+```
+
+# 2-species data
+```{r}
+dat_pen = subset(penguins, species != "Gentoo")
+boxplot(flipper_length_mm ~ species, data = dat_pen)
+
+dat_pen = droplevels(subset(penguins, species != "Gentoo"))
+{
+  par(mfrow = c(1, 2))
+  boxplot(flipper_length_mm ~ species, data = penguins)
+  boxplot(flipper_length_mm ~ species, data = dat_pen)
+}
+```
+
+# Resampling with replacement
+```{r}
+# for reproducibility
+set.seed(123)
+
+flipper_shuffled = sample(penguins$flipper_length_mm, replace = TRUE)
+par(mfrow = c(1, 2))
+boxplot(flipper_length_mm ~ species, data = penguins)
+boxplot(flipper_shuffled ~ penguins$species, xlab = "species")
+```
+
+# Classic t-test: Adelie and Chinstrap penguins
+```{r}
+t.test(dat_pen$flipper_length_mm ~ dat_pen$species)
+```
+
+# Two-sample resampling
+```{r}
+# Reset the random number generator state for reproduceablility
+set.seed(1)
+flipper_shuffled = sample(dat_pen$flipper_length_mm)
+
+boxplot(flipper_shuffled ~ dat_pen$species)
+```
+
+# Classical test on resampled data
+```{r}
+t_test_1 = t.test(flipper_shuffled ~ dat_pen$species)
+t_test_1
+```
+
+# Difference of means
+```{r}
+t_test = t.test(dat_pen$flipper_length_mm ~ dat_pen$species)
+t_test
+
+t_test$estimate
+
+diff_observed = round(diff(t_test$estimate), digits = 3)
+print(diff_observed, digits = 3)
+```
+
+# Using aggregate()
+```{r}
+agg_means = aggregate(
+  flipper_length_mm ~ species, 
+  data = dat_pen, 
+  FUN = mean, 
+  na.rm = TRUE)
+diff_observed = diff(agg_means[, 2])
+
+agg_means
+diff_observed
+```
+
+# Sample sizes
+```{r}
+table(dat_pen$species)
+
+n_1 = 68
+n_2 = 152
+
+dat_1 = sample(dat_pen$flipper_length_mm, n_1, replace = TRUE)
+dat_2 = sample(dat_pen$flipper_length_mm, n_2, replace = TRUE)
+
+diff_simulated = 
+  mean(dat_1, na.rm = TRUE) - mean(dat_2, na.rm = TRUE)
+
+print(c(observed = diff_observed, simulated = diff_simulated))
+```
+
+# Simulation function
+```{r}
+x = dat_pen$flipper_length_mm
+n_1 = 68
+n_2 = 152
+
+dat_1 = sample(x, n_1, replace = TRUE)
+dat_2 = sample(x, n_2, replace = TRUE)
+
+diff_simulated = 
+  mean(dat_1, na.rm = TRUE) - mean(dat_2, na.rm = TRUE)
+
+# Turn the resampling code into one function
+two_group_resample = function(x, n_1, n_2)
+  {
+    dat_1 = sample(x, n_1, replace = TRUE)
+    dat_2 = sample(x, n_2, replace = TRUE)
+  
+    mean(dat_1, na.rm = TRUE) - mean(dat_2, na.rm = TRUE)
+  }
+set.seed(54321)
+two_group_resample(dat_pen$flipper_length_mm, 68, 152)
+```
+
+# Resampling experiment
+```{r}
+n = 2000
+mean_differences = c()
+for (i in 1:n)
+{
+  mean_differences = c(
+    mean_differences,
+    two_group_resample(dat_pen$flipper_length_mm, 68, 152)
+  )
+}
+hist(mean_differences)
+
+sum(abs(mean_differences) >= diff_observed)
+```
+
+# Retrieving named elements
+```{r}
+t_test = t.test(flipper_shuffled ~ dat_pen$species)
+str(t_test)
+
+t_test$estimate
+```
+
+# Lab Questions
+
+# Question 1
+```{r}
+rm(list = ls())
+
+sse_mean = function(x)
+  {
+    sd(x, na.rm = TRUE) / sqrt(length(x) - sum(is.na(x)))
+  }
+
+sse_mean(penguins$body_mass_g)
+sse_mean(mtcars$mpg)
+```
+
+# Question 2
+```{r}
+set.seed(54321)
+two_group_resample = function(x, n_1, n_2)
+  {
+    dat_1 = sample(x, n_1, replace = TRUE)
+    dat_2 = sample(x, n_2, replace = TRUE)
+  
+    mean(dat_1, na.rm = TRUE) - mean(dat_2, na.rm = TRUE)
+  }
+```
+
+# Question 3
+My function performs Monte Carlo resampling, it simulates a null hypothesis.
+
+
+# Question 4
+```{r}
+dat_pen = droplevels(subset(penguins, species != "Gentoo"))
+{
+  par(mfrow = c(1, 2))
+  boxplot(flipper_length_mm ~ species, data = penguins)
+  boxplot(flipper_length_mm ~ species, data = dat_pen)
+}
+
+two_group_resample = function(x, n_1, n_2)
+  {
+    dat_1 = sample(x, n_1, replace = TRUE)
+    dat_2 = sample(x, n_2, replace = TRUE)
+  
+    mean(dat_1, na.rm = TRUE) - mean(dat_2, na.rm = TRUE)
+  }
+
+n = 2000
+mean_differences = c()
+for (i in 1:n)
+  {
+  mean_differences = c(
+    mean_differences,
+    two_group_resample(dat_pen$flipper_length_mm, 68, 152)
+    )
+  }
+hist(mean_differences, xlab = "Mean differences", main = "Histogram of resampled mean")
+```
+
+# Question 5
+0 of the resampled differences of means were greater than 5.8. The R code I used to check the number of differences is below.
+```{r}
+agg_means = aggregate(
+  flipper_length_mm ~ species, 
+  data = dat_pen, 
+  FUN = mean, 
+  na.rm = TRUE)
+diff_observed = diff(agg_means[, 2])
+sum(abs(mean_differences) >= diff_observed)
+```
+
+# Question 6
+You'd need to run at *least* 10 million simulations to see a difference in mean flipper length greater than or equal to 5.8 mm.
+
+# Question 7
+```{r}
+boxplot(dat_pen$body_mass_g ~ dat_pen$species, xlab ="Species", ylab = "Body mass")
+```
+
+# Question 8
+The group means are Adelie: 3700.662 and Chinstrap: 3733.088. The difference between the means is 32.42598. The code I used is below.
+```{r}
+agg_means = aggregate(
+  body_mass_g ~ species, 
+  data = dat_pen, 
+  FUN = mean, 
+  na.rm = TRUE)
+
+agg_means
+diff_crit = diff(agg_means[, 2]); diff_crit
+```
+
+# Question 9
+The p-value is 0.5879, which means that if I repeatedly sampled body mass for Adelie and Chinstrap penguins, I'd expect to observe a difference in mean body mass of 32.4 g or greater in ~59% of the experiments.
+```{r}
+t.test(dat_pen$body_mass_g ~ dat_pen$species)
+```
+
+# Question 10 and 11
+601 differences in means were greater than diff_crit (which is 32.42598).
+```{r}
+two_group_resample = function(x, n_1, n_2)
+  {
+    dat_1 = sample(x, n_1, replace = TRUE)
+    dat_2 = sample(x, n_2, replace = TRUE)
+  
+    mean(dat_1, na.rm = TRUE) - mean(dat_2, na.rm = TRUE)
+  }
+
+n = 1000
+mean_differences = c()
+for (i in 1:n)
+{
+  mean_differences = c(
+    mean_differences,
+    two_group_resample(dat_pen$body_mass_g, 68, 152)
+  )
+}
+agg_means
+diff_crit
+sum(abs(mean_differences) >= diff_crit)
+
+hist(mean_differences, xlab = "Mean differences", main = "Histogram of simulation mean differences")
+```

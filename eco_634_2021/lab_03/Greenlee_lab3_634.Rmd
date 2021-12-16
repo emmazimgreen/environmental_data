@@ -1,0 +1,169 @@
+---
+title: "Lab 03: Data Exploration and Deterministic Functions"
+subtitle: "Analysis of Environmental Data Lab 634"
+author: "Emma Zimmerman Greenlee"
+date: 2021-09-22
+output: 
+  html_document:
+      toc: true
+      toc_float: true
+---
+# Lab 3 Introduction Work
+
+``` {r}
+# Nicer pairplots
+# install.packages("psych")
+require(psych)
+
+pairs.panels(iris)
+
+# Data install
+require(here)
+dat_bird = read.csv(here("data", "bird.sta.csv"))
+
+head(dat_bird)
+
+dat_habitat = read.csv(here("data", "hab.sta.csv"))
+
+head(dat_habitat)
+
+# Merge the data
+dat_all = merge(dat_bird, dat_habitat)
+
+plot(ba.tot ~ elev, data = dat_all)
+
+# Convert bird data to presence/absence
+sample(dat_all$CEWA, 100)
+
+dat_all$CEWA >= 1
+
+# Presence/Absence
+# cewa_present_absent = dat_all$CEWA >= 1
+
+# Data type coercion
+cewa_present_absent = as.numeric(dat_all$CEWA >= 1)
+
+plot(x = dat_all$elev, y = cewa_present_absent)
+
+# Fitting a logistic curve
+
+# Function to calculate the logistic parameter a given the slope and midpoint
+get_logistic_param_a = function(slope, midpoint)
+{
+  b = slope / 4
+  return (-midpoint * (slope / 4))
+}
+
+# Function to calculate the logistic parameter b given the slope
+get_logistic_param_b = function(slope)
+{
+  return (slope / 4)
+}
+
+
+# Calculate the value of the logistic function at x, given the parameters a and b.
+logistic = function(x, a, b)
+{
+  val = exp(a + b * x)
+  return(val / (1 + val))
+}
+
+# Calculate the value of the logistic function at x, given a slope and midpoint.
+logistic_midpoint_slope = function(x, midpoint, slope)
+{
+  b = get_logistic_param_b(slope)
+  a = get_logistic_param_a(slope, midpoint)
+  return(logistic(x, a, b))
+}
+
+# Logistic Fit 1
+plot(x = dat_all$elev, y = cewa_present_absent)
+curve(logistic_midpoint_slope(x, midpoint = 400, slope = 0.1), add = TRUE)
+
+# Logistic Fit 2
+plot(x = dat_all$elev, y = cewa_present_absent)
+curve(logistic_midpoint_slope(x, midpoint = 400, slope = -0.1), add = TRUE)
+
+# Logistic Fit 3
+plot(x = dat_all$elev, y = cewa_present_absent)
+curve(logistic_midpoint_slope(x, midpoint = 400, slope = -0.05), add = TRUE)
+
+# Instructions and Deliverables
+# Terrain and BA plots
+dat_terrain = dat_all[
+  c("elev", "slope", "aspect", "ba.tot")]
+
+pairs.panels(dat_terrain)
+
+#Bird Presence/Absence plots
+deju_present_absent = as.numeric(dat_all$DEJU >= 1)
+plot(x = dat_all$ba.tot, y = deju_present_absent, main = "Dark Eyed Junco Presence and Basal Area", xlab = "Basal Area", ylab = "Dark Eyed Junco Presence")
+curve(logistic_midpoint_slope(x, midpoint = 100, slope = 0.1), add = TRUE)
+
+pyow_present_absent = as.numeric(dat_all$PYOW >= 1)
+plot(x = dat_all$ba.tot, y = dat_all$PYOW, main = "Pygmy Owl Presence and Basal Area", xlab = "Basal Area", ylab = "Pygmy Owl Presence")
+curve(logistic_midpoint_slope(x, midpoint = 100, slope = 0.1), add = TRUE)
+```
+
+# Question 1
+
+Basal area is how much space a tree takes up at its base (actually at breast height, which is 4.5 feet up the trunk). It's measured by using the diameter of the tree to calculate its area, and is described as how much land it takes up. So, areas with high basal area have a lot of tree cover, and areas with low basal area have much less tree cover.
+
+# Question 2
+
+```{r}
+dat_terrain = dat_all[
+  c("elev", "slope", "aspect", "ba.tot")]
+
+pairs.panels(dat_terrain)
+```
+
+# Question 3
+
+```{r}
+deju_present_absent = as.numeric(dat_all$DEJU >= 1)
+plot(x = dat_all$ba.tot, y = deju_present_absent, main = "Dark Eyed Junco Presence and Basal Area", xlab = "Basal Area", ylab = "Dark Eyed Junco Presence")
+curve(logistic_midpoint_slope(x, midpoint = 100, slope = 0.1), add = TRUE)
+```
+
+# Question 4
+
+Dark Eyed Juncos are only present at the lower basal area values, with fewer and fewer until we get to a basal area of around 80, and none after that. Most of the sites had no Dark Eyed Juncos observed, but where there were Dark Eyed Juncos, they preferred areas with low tree cover. 
+
+The fitted logistic curve looks inappropriate for the data as there are essentially only two lines of data points in this plot. Personally, I would either use a linear model to represent the data, or no model at all, as it seems very self explanatory. 
+
+
+# Question 5
+
+```{r}
+pyow_present_absent = as.numeric(dat_all$PYOW >= 1)
+plot(x = dat_all$ba.tot, y = dat_all$PYOW, main = "Pygmy Owl Presence and Basal Area", xlab = "Basal Area", ylab = "Pygmy Owl Presence")
+curve(logistic_midpoint_slope(x, midpoint = 100, slope = 0.1), add = TRUE)
+```
+
+# Question 6
+
+There were very few instances where there were any Pygmy Owls at all, but they were all at basal areas of less than ~60. Almost all of the sites had no observations of Pygmy Owls. From the few instances where there were Pygmy Owls observed, they seem to prefer low tree cover.
+
+Again, the logistic model seems to be an inappropriate fit for the data. Either a linear model or none at all woul dbe better in my opinion.
+
+# Question 7
+
+There were a total of 181 Gray Jays that were obseved in all of the sampling sites
+
+# Question 8
+
+```{r}
+sum(dat_all$GRJA)
+```
+
+# Question 9
+
+There were a total of 110 sampling sites in which Gray Jays were observed.
+
+# Question 10
+
+```{r}
+sum(dat_all$GRJA >= 1)
+```
+

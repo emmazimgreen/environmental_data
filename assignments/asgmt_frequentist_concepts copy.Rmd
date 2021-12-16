@@ -1,0 +1,79 @@
+---
+title: "asgmt_frequentist_concepts"
+subtitle: "Analysis of Environmental Data 602"
+author: "Emma Zimmerman Greenlee"
+date: 2021-10-20
+output: 
+  html_document:
+      toc: true
+      toc_float: true
+---
+# Question 1: 
+### What is the probability of observing a count of exactly 3 successes in a binomial distribution with parameters n = 4 and p = 0.75?
+```{r}
+dbinom(3, size = 4, prob = 0.75, log = FALSE)
+```
+The probability is ~42%
+
+# Question 2: 
+### What is the probability of observing a count of 3 successes or fewer in a binomial distribution with parameters n = 4 and p = 0.75?
+```{r}
+pbinom(3, size = 4, prob = 0.75, log.p = FALSE)
+```
+The probability is ~68%
+
+# Question 3: 
+### What is the probability of observing more than 3 successes in a binomial distribution with parameters n = 5 and p = 0.75?
+```{r}
+1 - pbinom(4, size = 5, prob = 0.75, log.p = FALSE)
+```
+The probability is ~63%
+
+# Question 4: 
+### What is the probability of observing a value of less than 1.2 from a normally-distributed population with mean = 2 and standard deviation = 2?
+```{r}
+pnorm(1.2, mean = 2, sd = 2, log.p = FALSE)
+```
+The probability is ~34%
+
+# Question 5: 
+### What is the probability of observing a value of greater than 1.2 from a normally-distributed population with mean = 2 and standard deviation = 2?
+```{r}
+1 - pnorm(1.2, mean = 2, sd = 2, log.p = FALSE)
+```
+The probability is ~65%
+
+# Question 6: 
+### What is the probability of observing a value between 1.2 and 3.2 from a normally-distributed population with mean = 2 and standard deviation = 2?
+```{r}
+pnorm(3.2, mean = 2, sd = 2) - pnorm(1.2, mean = 2, sd = 2)
+```
+The probability is ~38%
+
+# Question 7: 
+### Describe how the shape of the histogram changes as you continue to press the sample button.
+As I keep pressing the sample button, the histogram starts to resemble the skewed beta distribution more and more, height-wise.
+
+# Question 8: 
+### Describe how the shape of the histogram changes as you continue to press the sample button.
+The histogram starts resembling the skewed beta distribution more, width-wise and a tail starts to appear, as well.
+
+# Question 9: 
+### Describe how the shape of the histogram changes as you continue to press the sample button.
+Very little about the shape of the histogram changes as I press the sample button. The distribution of the data in the bars change slightly, but overall the shape stays the same.
+
+# Question 10: 
+### Why is there such a drastic change in the shape of the sampling distribution when you change the sample size from 1 to 2?
+It's *only* taking the averages of the values, it's minimizing any/all outliers, and the data is, obviously, averaged instead of being raw.
+
+# Question 11: 
+### What are the two main factors that determine the width of the sampling distribution of the mean?
+The standard deviation of the population and the sample size.
+
+# Question 12: 
+### How many 3-character words are possible?
+25*25*25 = 25^3 = 15625 3-character words
+
+# Question 13: 
+### How many books would the Library contain if you added one additional position to the book size? Express your answer in terms of B.
+B*25

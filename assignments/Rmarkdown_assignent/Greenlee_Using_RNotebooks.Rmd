@@ -1,0 +1,25 @@
+---
+title: "R Markdown Documents - Part 1"
+subtitle: "Analysis of Environmental Data"
+author: "Emma Zimmerman Greenlee"
+output: 
+  html_document:
+      toc: true
+      toc_float: true
+---
+
+# Introduction
+
+Hello, my name is **Emma Zimmerman Greenlee.** I'm in the *Forest Resources and Arboriculture program* in the Eco department.
+
+# Concepts list
+1. Basic statistical analysis
+2. Competency in R
+3. The name of Michael's dog :)
+
+# Course list
+* Permaculture Design
+* American Sign Language
+* Latin to Spanish Phonology
+
+

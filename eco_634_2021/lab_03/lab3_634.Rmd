@@ -1,0 +1,29 @@
+---
+title: "Lab 03: Data Exploration and Deterministic Functions"
+subtitle: "Analysis of Environmental Data Lab 634"
+author: "Emma Zimmerman Greenlee"
+date: 2021-09-22
+output: 
+  html_document:
+      toc: true
+      toc_float: true
+---
+
+``` {r}
+install.packages("psych")
+require(psych)
+
+pairs.panels(iris)
+
+requireNamespace(here)
+require(here)
+dat_bird = read.csv(here("data", "bird.sta.csv"))
+
+head(dat_bird)
+```
+
+
+png(filename = here("images", "demo_image_png"), width = 1600, height = 1400)
+
+pairs.panels(pengi]uins)
+dev.off()

@@ -1,0 +1,252 @@
+---
+title: "Lab 5: Uncertainty, Samples, and Populations"
+subtitle: "Analysis of Environmental Data Lab 634"
+author: "Emma Zimmerman Greenlee"
+date: 2021-10-06
+output: 
+  html_document:
+      toc: true
+      toc_float: true
+---
+# Prelab Walkthrough
+
+# Create a Ricker function
+```{r}
+ricker_fun = function(x, a, b) 
+{
+  return(a * x * exp(-b * x))
+}
+
+curve(
+  ricker_fun(x, 1, 1), 
+  from = 0, to = 5, add = FALSE, 
+  main = "Ricker function: a = 1, b = 1",
+  ylab = "f(x)", xlab = "x")
+```
+
+# Create an exponential function
+```{r}
+exp_fun = function(x, a, b) 
+{
+  return(a * exp(-b * x))
+}
+
+curve(
+  exp_fun(x, 0.3, 1/15), add = FALSE, from = 0,
+  to = 50,
+  ann = FALSE, axes = TRUE, ylab = "f(x)");
+  box()
+```
+
+# Simulated data on a line
+```{r}
+# Seed the RNG so we can reproduce our results
+set.seed(1234567)
+
+# Specify the x-range and number of points:
+n_pts = 50
+x_min = 2
+x_max = 10
+
+# Generate the x-values
+x_sim = runif(n_pts, min = x_min, max = x_max)
+
+# Choose an intercept and slope for our deterministic model and generate the ‘predicted’ y values
+param_intercept = 2.3
+param_slope = 0.67
+y_pred = param_intercept + x_sim * param_slope
+plot(x_sim, y_pred, main = "Simulated Data\nNo Errors", xlab = "", ylab = "")
+```
+
+# Normal errors 1
+# Add some normally-distributed noise to generate our 'observed' y-values
+```{r}
+error_mean = 0
+error_sd = 0.25
+
+y_observed = 
+  y_pred + 
+  rnorm(
+    n = n_pts, 
+    mean = error_mean, 
+    sd = error_sd)
+plot(x_sim, y_observed, main = "Normally Distributed Errors\n Constant Variance", xlab = "", ylab = "")
+```
+
+# Normal errors 2
+# To use a more sophisticated stochastic model, we can make the variability larger with increasing values of x
+```{r}
+error_mean = 0
+error_sd = 0.1
+
+y_observed_2 = 
+  y_pred + 
+  rnorm(
+    n = n_pts, 
+    mean = error_mean, 
+    sd = error_sd * x_sim)
+
+par(mfrow = c(1, 2))
+plot(x_sim, y_observed, main = "Normally Distributed Errors\n Constant Variance", xlab = "", ylab = "")
+plot(x_sim, y_observed_2, main = "Normally Distributed Errors\n Increasing Variance", xlab = "", ylab = "")
+```
+
+# Choosing a model
+```{r}
+par(mfrow = c(3, 1))
+plot(x_sim, y_observed)
+plot(x_sim, y_observed_2)
+
+par(mfrow = c(3, 1))
+hist(y_observed - y_pred, main = "sim data 1", xlab = "observed y=values")
+hist(y_observed_2 - y_pred, main = "sim data 2", xlab = "observed y=values")
+```
+
+# Lab 5
+```{r}
+# Load the data into a dataframe
+require(here)
+
+dat_dispersal = data.frame(read.csv(here("data", "dispersal.csv")))
+head(dat_dispersal)
+```
+
+# Question 1
+```{r}
+exp_fun = function(x, a, b) 
+{
+  return(a * exp(-b * x))
+}
+```
+
+# Question 2
+```{r}
+{
+  curve(
+    exp_fun(x, 1.9, 0.1), add = FALSE, from = 0,
+    to = 50,
+    ann = FALSE, axes = TRUE, col = "black", lty = "solid",
+    ylab = "f(x)"); box()
+  curve(
+    exp_fun(x, 1.9, 0.3), add = TRUE, col = "black", lty = "dotted")
+  curve(
+    exp_fun(x, 1.2, 0.2), add = TRUE, col = "red", lty = "solid")
+  curve(
+    exp_fun(x, 1.2, 0.4), add = TRUE,  col = "red", lty = "dotted")
+}
+```
+
+# Question 3
+When I change parameter a, it seems to change the height of where the curve starts. The red lines have lower a values and they start much lower on the y-axis than where the black lines start.
+
+# Question 4
+When I change parameter b, it seems to change the depth of the curve, or rput another way, how much the line curves. The dotted lines with lower b values have "deeper" curves, whereas the solid lines with higher b values have "shallower" curves.
+
+# Question 5
+```{r}
+{
+  curve(
+    ricker_fun(x, 25, 0.1), 
+    from = 0, to = 10, add = FALSE, col = "black", lty = "solid",
+    ylab = "f(x)", xlab = "x")
+  curve(
+    ricker_fun(x, 20, 0.2), 
+    add = TRUE, col = "black", lty = "dotted")
+  curve(
+    ricker_fun(x, 10, 0.2), 
+    add = TRUE, col = "black", lty = "dotted")
+  curve(
+    ricker_fun(x, 75, 0.3), 
+    add = TRUE, col = "red", lty = "solid")
+  curve(
+    ricker_fun(x, 50, 0.3), 
+    add = TRUE, col = "red", lty = "dotted")
+  curve(
+    ricker_fun(x, 40, 0.3), 
+    add = TRUE, col = "red", lty = "dotted")
+}
+```
+
+# Question 6
+Varying the a parameter seems to change the height of the curve. The lines with higher a values have higher peaks than the lines with lower a values.
+
+# Question 7
+Varying the b parameter seems to change how large and flat the curve is. The lines with lower b values have much larger and more arched curves, wheras the lines with higher b values have smaller and flatter curves. 
+
+
+# Question 8
+My intercept values are x = 1465 and y = 0.05. My slope value is -0.0003.
+
+I chose the values of my intercept parameters by using locator(1) that was suggested in the instructions. I chose my slope value by trying out many different values and essentially guessing until I found a slope that I thought fit the model well.
+
+# Question 9
+```{r}
+line_point_slope = function(x, x1, y1, slope)
+  {
+    get_y_intercept = 
+      function(x1, y1, slope) 
+        return(-(x1 * slope) + y1)
+    
+    linear = 
+      function(x, yint, slope) 
+        return(yint + x * slope)
+    
+    return(linear(x, get_y_intercept(x1, y1, slope), slope))
+  }
+
+guess_x = 1465
+guess_y = 0.05
+guess_slope = -0.0003
+  
+plot(x = dat_dispersal$dist.class, y = dat_dispersal$disp.rate.ftb)
+curve(line_point_slope(x, guess_x, guess_y, guess_slope), add = T)
+
+dat_dispersal$predicted_lin = line_point_slope(dat_dispersal$dist.class, guess_x, guess_y, guess_slope)
+```
+
+# Question 10
+My values are a = 1 and b = 0.0033. I set my a value as 1 becuase I wanted the function to start at the beginning of the x scale, and I essentially guessed for the b value by putting it lots of numberrs until I came up with a good visual fit.
+
+# Question 11
+```{r}
+plot(x = dat_dispersal$dist.class, y = dat_dispersal$disp.rate.ftb)
+curve(
+    exp_fun(x, 1, 0.0033), add = TRUE)
+
+dat_dispersal$predicted_exp = exp_fun(dat_dispersal$dist.class, 1, 0.0033)
+```
+
+
+
+# Question 12
+My values are a = 0.007 and b = 0.0037. I started with 1/400 for both values and then adjusted the values incrementally from there until I got a good visual fit.
+
+# Question 13
+```{r}
+plot(x = dat_dispersal$dist.class, y = dat_dispersal$disp.rate.ftb)
+curve(
+    ricker_fun(x, 0.007, 0.0037), add = TRUE)
+
+dat_dispersal$predicted_rick = ricker_fun(dat_dispersal$dist.class, 0.007, 0.0037)
+```
+
+# Question 14
+```{r}
+dat_dispersal$resids_linear = (dat_dispersal$disp.rate.ftb - dat_dispersal$predicted_lin)
+
+dat_dispersal$resids_exp = (dat_dispersal$disp.rate.ftb - dat_dispersal$predicted_exp)
+
+dat_dispersal$resids_ricker = (dat_dispersal$disp.rate.ftb - dat_dispersal$predicted_rick)
+
+head(dat_dispersal)
+```
+
+
+# Question 15
+```{r}
+par(mfrow = c(3, 1))
+
+hist(dat_dispersal$resids_linear)
+hist(dat_dispersal$resids_exp)
+hist(dat_dispersal$resids_ricker)
+```

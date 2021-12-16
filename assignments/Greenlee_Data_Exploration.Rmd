@@ -1,0 +1,105 @@
+---
+title: "Data exploration and deterministic functions"
+subtitle: "Analysis of Environmental Data 602"
+author: "Emma Zimmerman Greenlee"
+date: 2021-09-16
+output: 
+  html_document:
+      toc: true
+      toc_float: true
+---
+
+# Question 1
+
+```{r}
+
+require("here")
+
+dat_habitat = data.frame(read.csv(here("data", "hab.sta.csv")))
+
+par(mfrow = c(3, 1))
+
+hist(dat_habitat$elev, main = "Histogram of Elevation", xlab = "Elevation")
+
+hist(dat_habitat$slope, main = "Histogram of Slope", xlab = "Slope")
+
+hist(dat_habitat$aspect, main = "Histogram of Aspect", xlab = "Aspect")
+
+```
+
+# Question 2
+
+The shape starts low and quickly gets taller and then drops off and tapers to an end as it gets higher. It is not evenly distributed, there are quite a bit more low elevation sampling sites
+
+# Question 3
+
+It's measured in percent slope.
+
+# Question 4
+
+The data goes up like a staircase and then plateaus for a bit and then quickly goes down. The sample sites are definitely not mostly flat, they are mostly steep slopes. There are not many shallow slopes.
+
+# Question 5
+
+Aspect is the orientation of a location/what direction an object is facing using the 360 degrees of a circle. 
+
+# Question 6
+
+The shape of the aspect histogram is mostly even all  the way across, with a sharp drop at the very end. Becuase the sampling sites are pretty evenly distributed they are all (more or less) equally facing each side.
+
+# Question 7
+
+```{r}
+line_point_slope = function(x, x1, y1, slope)
+{
+  get_y_intercept = 
+    function(x1, y1, slope) 
+      return(-(x1 * slope) + y1)
+  
+  linear = 
+    function(x, yint, slope) 
+      return(yint + x * slope)
+  
+  return(linear(x, get_y_intercept(x1, y1, slope), slope))
+}
+
+
+par(mfrow = c(3, 1))
+
+plot(x = dat_habitat$elev, 
+     y = dat_habitat$ba.tot, 
+     main = "Total BA to Elevation Scatterplot", 
+     xlab = "Elevation", 
+     ylab = "Total Basal Area")
+
+curve(line_point_slope(x, x1 = mean(dat_habitat$elev), y1 = mean(dat_habitat$ba.tot), slope = 0.04), add = TRUE)
+
+plot(x = dat_habitat$slope, 
+     y = dat_habitat$ba.tot, 
+     main = "Total BA to Slope Scatterplot", 
+     xlab = "Slope", 
+     ylab = "Total Basal Area")
+
+curve(line_point_slope(x, x1 = mean(dat_habitat$slope), y1 = mean(dat_habitat$ba.tot), slope = 0.04), add = TRUE)
+
+plot(x = dat_habitat$aspect, 
+     y = dat_habitat$ba.tot, 
+     main = "Total BA to Aspect Scatterplot", 
+     xlab = "Aspect", 
+     ylab = "Total Basal Area")
+
+curve(line_point_slope(x, x1 = mean(dat_habitat$aspect), y1 = mean(dat_habitat$ba.tot), slope = 0.02), add = TRUE)
+```
+
+
+# Question 8
+
+For the elevation variable, there is an association and it is linear. I think that although a linear model is a decent fit for this data, the hump in the middle of the data points makes it not a perfect fit.
+
+
+For the slope variable, there again is a noticeable associations  and it is linear. A linear model is a good fit for this data because the data points are in a pretty straight line.
+
+
+For the aspect variable, there is a noticeable association, and it is linear. I think that a linear model is a good fit for this data, as the data points are all in a relatively straight line with no curves up or down.
+
+

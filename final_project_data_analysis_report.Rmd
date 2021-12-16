@@ -1,0 +1,264 @@
+---
+title: "Final Project: Data Analysis Report"
+author: "Emma Zimmerman Greenlee"
+date: "12/15/2021"
+output: html_document
+---
+# Data Analysis Report {.tabset .tabset-pills}
+
+## Questions 1-4
+
+### Data Exploration
+```{r}
+# Load the data
+require(here)
+delomys = read.csv(here("data", "delomys.csv"))
+```
+
+### Numerical Exploration
+```{r}
+summary(delomys$body_mass)
+summary(delomys$body_length)
+
+shapiro.test(delomys$body_mass)
+shapiro.test(delomys$body_length)
+```
+
+### Graphical Exploration
+```{r fig.width=10}
+require(palmerpenguins)
+plot(bill_length_mm ~ body_mass_g, data = penguins)
+```
+
+```{r fig.width=9}
+plot(delomys$body_mass, delomys$body_length,
+     main = "Delomys Body Mass and Body Length Scatterplot",
+     xlab = "Delomys body mass",
+     ylab = "Delomys body length",
+     col = c("deeppink2", "deepskyblue4")
+     )
+```
+```{r fig.width=9, fig.height=6}
+hist(delomys$body_mass, 
+     main = "Delomys Body Mass Histogram",
+     xlab = "Delomys body mass",
+     col = "deeppink2")
+
+hist(delomys$body_length, 
+     main = "Delomys Body Mass Histogram",
+     xlab = "Delomys body length",
+     col = "deepskyblue4")
+```
+```{r fig.width=10, fig.height=7}
+boxplot(delomys$body_mass ~ delomys$binomial,
+        col = c("deeppink2", "darkgoldenrod1"),
+        main = "Delomys Body Mass by Species",
+        xlab = "species",
+        ylab = "body mass")
+
+boxplot(delomys$body_mass ~ delomys$sex,
+        col = c("deepskyblue4", "darkorange1"),
+        main = "Delomys Body Mass by Sex",
+        xlab = "sex",
+        ylab = "body mass")
+
+boxplot(delomys$body_mass ~ binomial*sex,
+        data = delomys,
+        main = "Delomys Body Mass by Species and Sex",
+        xlab = "species ~ sex",
+        ylab = "body mass",
+        names = c("d. dorsalis\nfemale", "d. sublineatus\nfemale", "d. dorsalis\nmale", 
+            "d. sublineatus\nmale"),
+        las = 2,
+        col = c("deeppink2", "darkgoldenrod1", "deepskyblue4", "darkorange1"))
+```
+
+### Question 1
+* Qualitatively describe the relationship between body mass and length.
+  * Does the relationship seem linear, curved, nonexistent?
+  
+The relationship between body mass and length seems to be mostly linear, excluding any outliers. Body mass and length increase together in a linear fashion (with a slight curve) until the end of the data points. Despite the slight curve, I would say that the data shows a linear relationship.
+  
+### Question 2
+* Qualitatively describe the shapes of the histograms.
+  * Do the data appear normally-distributed? Explain why or why not.
+  
+The data does seem mostly normally-distributed. The histograms are mostly bell-shaped (if they had more data to graph, I believe they might appear more bell-shaped), which illustrates a normal distribution.
+
+### Question 3
+* Using both the histograms and normality tests, do you think the (unconditioned) body masses and body length are normally-distributed?
+  * Contrast your visual assessment of normality to the results of the numerical normality tests.
+  
+The normality tests for body mass and body length both have p-values much lower than 0.05, which tells us that the data is almost definitely *not* normally-distributed. This tells us a different story than the visual histograms, which show the distribution of data in a pretty clear bell shape. I'm more inclined to believe the numerical normality tests that the data is not normally-distributed.
+  
+### Question 4
+* Examine the conditional boxplots. Describe any graphical evidence you see for body mass differences based on species and/or sex.
+
+Firstly, the body mass of d. sublineatus seems to be a bit smaller than that of d. dorsalis, by about 10g or so. The males of the species are very slightly larger than the females. These observations are shown in the box plots above.
+
+## Questions 5-6
+
+### Model Building 
+```{r}
+# Simple linear regression
+fit1 = lm(body_length ~ body_mass, data = delomys)
+# 1-way ANOVA
+fit2 = lm(body_mass ~ sex, data = delomys)
+# 1-way ANOVA
+fit3 = lm(body_mass ~ binomial, data = delomys)
+# 2-way additive ANOVA
+fit4 = lm(body_mass ~ sex + binomial, data = delomys)
+# 2-way factorial ANOVA
+fit5 = lm(body_mass ~ sex * binomial, data = delomys)
+```
+
+### Model Diagnostics
+```{r}
+hist(residuals(fit1),
+     main = "Histogram of Fit 1 Residuals",
+     xlab = "fit 1 residuals",
+     col = "deeppink2")
+
+hist(residuals(fit2),
+     main = "Histogram of Fit 2 Residuals",
+     xlab = "fit 2 residuals",
+     col = "darkgoldenrod1")
+
+hist(residuals(fit3),
+     main = "Histogram of Fit 3 Residuals",
+     xlab = "fit 3 residuals",
+     col = "deepskyblue4")
+
+hist(residuals(fit4),
+     main = "Histogram of Fit 4 Residuals",
+     xlab = "fit 4 residuals",
+     col = "darkorange1")
+
+hist(residuals(fit4),
+     main = "Histogram of Fit 4 Residuals",
+     xlab = "fit 4 residuals",
+     col = "darkviolet")
+
+hist(residuals(fit5),
+     main = "Histogram of Fit 5 Residuals",
+     xlab = "fit 5 residuals",
+     col = "darkgreen")
+```
+```{r}
+shapiro.test(residuals(fit1))
+shapiro.test(residuals(fit2))
+shapiro.test(residuals(fit3))
+shapiro.test(residuals(fit4))
+shapiro.test(residuals(fit5))
+```
+
+### Question 5
+* What do you conclude about residual normality based on the numerical and graphical diagnostics?
+
+While the histograms I created seem to show normally-distributed data of the fit residuals, the shapiro tests indicate the exact opposite, so I believe that the fit residuals are in fact, not normally-distributed.
+
+### Question 6
+* Are violations of the normality assumption equally severe for all the models?
+
+All of the model residuals can be concluded to be *very* definitively not normal, but the p-value of the shapiro test on the fit2 residuals is quite higher than the rest of the p-values from the shapiro test.
+
+## Questions 7-9
+
+### Model Interpretation
+```{r}
+knitr::kable(coef(summary(fit1)))
+```
+
+### Question 7
+* What is the magnitude of the mass/length relationship?
+
+The magnitude of the mass/length relationship is ~0.88.
+
+### Question 8
+* What is the expected body length of an an animal that weighs 100g?
+
+The expected body length of a 100g animal is ~164.12mm.
+
+### Question 9
+* What is the expected body length of an animal that weighs 0g?
+
+The expected body length of a 0g animal is 76.12mm. (As an aside, I'm pretty sure an animal that weighs 0g does not exist and therefore does not have a body to measure the length of. But I digress.)
+
+## Questions 10-13
+```{r}
+knitr::kable(coef(summary(fit2)))
+
+knitr::kable(coef(summary(fit3)))
+
+knitr::kable(coef(summary(fit4)))
+
+knitr::kable(coef(summary(fit5)))
+```
+
+### Question 10
+* What is the base level for sex?
+
+The base level for sex is female.
+
+### Question 11
+* What is the base level for binomial?
+
+The base level for binomial is d. dorsalis.
+
+### Question 12
+* Which sex is heavier?
+
+Males are the heavier sex.
+
+### Question 13
+* Which species is heavier?
+
+D. dorsalis is heavier than d. sublineatu.
+
+## Questions 14-16
+```{r}
+knitr::kable(anova(fit2))
+
+knitr::kable(anova(fit3))
+
+knitr::kable(anova(fit4))
+
+knitr::kable(anova(fit5))
+```
+
+### Question 14
+* Are sex and species significant predictors for body mass?
+
+The p-values for sex and species are much lower than 0.05, so sex and species *are* significant predictors for body mass.
+
+### Question 15
+* Is there a significant interaction?
+
+The p-value for the interaction is 0.95, greater than 0.05, which means that there is a significant interaction.
+
+### Question 16
+* How does the significance (as measured by p-value) of either of the main effects (sex and species) differ between the single-predictor models, the additive model, and the interactive model?
+
+The p-values for the additive model and single-predictor models show that there is significance, whereas the p-value for the interactive model does not.
+
+## Questions 17-18
+
+### Model Comparison: Body Mass
+```{r}
+AIC(fit1)
+AIC(fit2)
+AIC(fit3)
+AIC(fit4)
+AIC(fit5)
+```
+
+### Question 17
+* Which two models have the lowest AIC?
+
+Model 4 and model 5 have the lowest AIC.
+
+### Question 18
+* Which of the two models with lowest AIC scores would you select?
+  * Explain your decision based on model fit and the complexity/understanding tradeoff.
+  
+Because model 4 has a lower AIC and had the larger p-value from the shapiro.test, it is slightly more normally-distributed than model 5, so I would chose model 4 over model 5.
