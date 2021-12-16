@@ -9,4 +9,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Welcome to Emma's class page!
+Welcome to Emma's class page! Her blood, sweat, and tears went into it.
+
+[Final Project: R Reference Guide](final_R_reference.html)
